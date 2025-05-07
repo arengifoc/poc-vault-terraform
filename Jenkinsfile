@@ -29,7 +29,9 @@ spec:
 
         stage('Terraform Init') {
             steps {
-                sh 'terraform init -input=false'
+                container('terraform') {
+                    sh 'terraform init -input=false'
+                }
             }
         }
 
@@ -41,7 +43,9 @@ spec:
                 }
             }
             steps {
-                sh 'terraform plan -input=false'
+                container('terraform') {
+                    sh 'terraform plan -input=false'
+                }
             }
         }
 
@@ -53,14 +57,16 @@ spec:
                 }
             }
             steps {
-                sh 'terraform apply -auto-approve'
+                container('terraform') {
+                    sh 'terraform apply -auto-approve'
+                }
             }
         }
     }
 
     post {
         failure {
-            mail to: 'devops@example.com',
+            mail to: 'arengifoc@gmail.com',
                  subject: "Terraform Pipeline Failed: ${env.JOB_NAME} #${env.BUILD_NUMBER}",
                  body: "Check Jenkins for details: ${env.BUILD_URL}"
         }
