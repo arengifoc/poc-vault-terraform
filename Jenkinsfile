@@ -32,7 +32,7 @@ spec:
         stage('Autenticarse con Vault') {
             steps {
                 script {
-                    def vaultResponse = sh(
+                    def GetVaultToken = sh(
                         script: '''
                         curl -sLo jq https://github.com/jqlang/jq/releases/download/jq-1.7.1/jq-linux-amd64
                         chmod +x jq
@@ -44,9 +44,22 @@ spec:
                         returnStdout: true
                     ).trim()
 
-                    echo "Vault response: ${vaultResponse}"
-
-                    env.VAULT_TOKEN = vaultResponse
+                    def gcpCreds = sh(
+                        script: '''
+                        curl -sH "X-Vault-Token: $VAULT_TOKEN" \
+                          "$VAULT_ADDR/v1/gcp/roleset/terraform-admin/key?ttl=10m" \
+                          | ./jq -r '.data.private_key_data' | base64 -d
+                        ''',
+                        returnStdout: true
+                    ).trim()
+                    
+                    env.VAULT_TOKEN = GetVaultToken
+                    
+                    // Guardar el archivo JSON localmente para usar con Terraform
+                    writeFile file: 'gcp-creds.json', text: gcpCreds
+                
+                    // Seteamos variable que usará Terraform
+                    env.GOOGLE_APPLICATION_CREDENTIALS = "${env.WORKSPACE}/gcp-creds.json"                    
                 }
             }
         }
