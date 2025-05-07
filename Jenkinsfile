@@ -36,9 +36,9 @@ spec:
                         script: '''
                         curl -sLo jq https://github.com/jqlang/jq/releases/download/jq-1.7.1/jq-linux-amd64
                         chmod +x jq
-                        echo "Role ID: ${ROLE_ID}" | sed 's/./ &/g;s/^ //'
-                        echo "Secret ID: ${SECRET_ID}" | sed 's/./ &/g;s/^ //'
-                        echo curl -sX POST -d '{"role_id":"'$ROLE_ID'","secret_id":"'$SECRET_ID'"}' \
+                        # echo "Role ID: ${ROLE_ID}" | sed 's/./ &/g;s/^ //'
+                        # echo "Secret ID: ${SECRET_ID}" | sed 's/./ &/g;s/^ //'
+                        curl -sX POST -d '{"role_id":"'$ROLE_ID'","secret_id":"'$SECRET_ID'"}' \
                             $VAULT_ADDR/v1/auth/approle/login 
                         ''',
                         returnStdout: true
