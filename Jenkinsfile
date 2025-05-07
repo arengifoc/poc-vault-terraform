@@ -34,16 +34,13 @@ spec:
                 script {
                     def vaultResponse = sh(
                         script: '''
-                        curl -sX POST -d "{\"role_id\":\"$ROLE_ID\",\"secret_id\":\"$SECRET_ID\"}" $VAULT_ADDR/v1/auth/approle/login
+                        curl -sX POST -d "{\"role_id\":\"$ROLE_ID\",\"secret_id\":\"$SECRET_ID\"}" \
+                            $VAULT_ADDR/v1/auth/approle/login | jq -r '.auth.client_token'
                         ''',
                         returnStdout: true
                     ).trim()
 
-                    def vaultToken = new groovy.json.JsonSlurperClassic()
-                        .parseText(vaultResponse)
-                        .auth.client_token
-
-                    env.VAULT_TOKEN = vaultToken
+                    env.VAULT_TOKEN = vaultResponse
                 }
             }
         }
