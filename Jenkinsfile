@@ -1,5 +1,19 @@
 pipeline {
-    agent any
+    agent {
+        kubernetes {
+            yaml """
+apiVersion: v1
+kind: Pod
+spec:
+  containers:
+  - name: terraform
+    image: hashicorp/terraform:1.6.6
+    command:
+    - cat
+    tty: true
+"""
+        }
+    }
 
     environment {
         TF_VAR_region = 'us-east-1'
