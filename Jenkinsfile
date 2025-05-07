@@ -33,9 +33,9 @@ spec:
             steps {
                 script {
                     def vaultResponse = sh(
-                        script: """
-                        curl -sX POST -d '{"role_id":"${ROLE_ID}","secret_id":"${SECRET_ID}"}' ${VAULT_ADDR}/v1/auth/approle/login
-                        """,
+                        script: '''
+                        curl -sX POST -d "{\"role_id\":\"$ROLE_ID\",\"secret_id\":\"$SECRET_ID\"}" $VAULT_ADDR/v1/auth/approle/login
+                        ''',
                         returnStdout: true
                     ).trim()
 
