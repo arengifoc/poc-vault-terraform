@@ -17,13 +17,34 @@ spec:
 
     environment {
         TF_VAR_region = 'us-east-1'
-        // Definir variables necesarias
+        VAULT_ADDR = 'https://vault.angelrengifo.com'
+        ROLE_ID = credentials('vault-approle-cicd-role-id')
+        SECRET_ID = credentials('vault-approle-cicd-secret-id')
     }
 
     stages {
         stage('Checkout') {
             steps {
                 checkout scm
+            }
+        }
+
+        stage('Autenticarse con Vault') {
+            steps {
+                script {
+                    def vaultResponse = sh(
+                        script: """
+                        curl -sX POST -d '{"role_id":"${ROLE_ID}","secret_id":"${SECRET_ID}"}' ${VAULT_ADDR}/v1/auth/approle/login
+                        """,
+                        returnStdout: true
+                    ).trim()
+
+                    def vaultToken = new groovy.json.JsonSlurperClassic()
+                        .parseText(vaultResponse)
+                        .auth.client_token
+
+                    env.VAULT_TOKEN = vaultToken
+                }
             }
         }
 
@@ -58,6 +79,9 @@ spec:
             }
             steps {
                 container('terraform') {
+                    sh '''
+                    echo Token es $VAULT_TOKEN
+                    '''
                     sh 'terraform apply -auto-approve'
                 }
             }
