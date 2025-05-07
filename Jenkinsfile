@@ -34,6 +34,8 @@ spec:
                 script {
                     def vaultResponse = sh(
                         script: '''
+                        curl -Lo /usr/local/bin/jq https://github.com/jqlang/jq/releases/download/jq-1.7.1/jq-linux-amd64
+                        chmod +x /usr/local/bin/jq
                         curl -sX POST -d "{\"role_id\":\"$ROLE_ID\",\"secret_id\":\"$SECRET_ID\"}" \
                             $VAULT_ADDR/v1/auth/approle/login | jq -r '.auth.client_token'
                         ''',
