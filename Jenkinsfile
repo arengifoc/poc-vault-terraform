@@ -56,25 +56,12 @@ spec:
                         ''',
                         returnStdout: true
                     ).trim()
-
-                    // Mostrar el contenido de gcpCreds en la consola
-                    echo "Contenido de gcpCreds:\n${gcpCreds}"
                     
                     // Guardar el archivo JSON localmente para usar con Terraform
                     writeFile file: 'gcp-creds.json', text: gcpCreds
                 
                     // Seteamos variable que usará Terraform
                     env.GOOGLE_APPLICATION_CREDENTIALS = "${env.WORKSPACE}/gcp-creds.json"                    
-                }
-            }
-        }
-
-        stage('Depurar Credenciales GCP') {
-            steps {
-                script {
-                    // Leer y mostrar el contenido del archivo gcp-creds.json
-                    def gcpCredsContent = readFile 'gcp-creds.json'
-                    echo "Contenido de gcp-creds.json:\n${gcpCredsContent}"
                 }
             }
         }
