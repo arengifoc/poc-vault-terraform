@@ -21,8 +21,6 @@ spec:
 
     environment {
         VAULT_ADDR = 'https://vault.angelrengifo.com'
-        ROLE_ID = credentials('vault-approle-cicd-role-id')
-        SECRET_ID = credentials('vault-approle-cicd-secret-id')
     }
 
     stages {
@@ -34,34 +32,39 @@ spec:
 
         stage('Autenticarse con Vault') {
             steps {
-                script {
-                    def GetVaultToken = sh(
-                        script: '''
-                        curl -sLo jq https://github.com/jqlang/jq/releases/download/jq-1.7.1/jq-linux-amd64
-                        chmod +x jq
-                        curl -sX POST -d '{"role_id":"'$ROLE_ID'","secret_id":"'$SECRET_ID'"}' \
-                            $VAULT_ADDR/v1/auth/approle/login | ./jq -r '.auth.client_token'
-                        ''',
-                        returnStdout: true
-                    ).trim()
+                withCredentials([
+                    string(credentialsId: 'vault-approle-cicd-role-id', variable: 'ROLE_ID'),
+                    string(credentialsId: 'vault-approle-cicd-secret-id', variable: 'SECRET_ID')
+                ]) {
+                    script {
+                        def GetVaultToken = sh(
+                            script: '''
+                            curl -sLo jq https://github.com/jqlang/jq/releases/download/jq-1.7.1/jq-linux-amd64
+                            chmod +x jq
+                            curl -sX POST -d '{"role_id":"'$ROLE_ID'","secret_id":"'$SECRET_ID'"}' \
+                                $VAULT_ADDR/v1/auth/approle/login | ./jq -r '.auth.client_token'
+                            ''',
+                            returnStdout: true
+                        ).trim()
 
-                    // Establecer VAULT_TOKEN en el entorno antes de usarlo
-                    env.VAULT_TOKEN = GetVaultToken
+                        // Usar VAULT_TOKEN solo en el contexto necesario
+                        withEnv(["VAULT_TOKEN=${GetVaultToken}"]) {
+                            def gcpCreds = sh(
+                                script: '''
+                                curl -sH "X-Vault-Token: $VAULT_TOKEN" \
+                                  "$VAULT_ADDR/v1/gcp/roleset/terraform-admin/key?ttl=10m" \
+                                  | ./jq -r '.data.private_key_data' | base64 -d
+                                ''',
+                                returnStdout: true
+                            ).trim()
 
-                    def gcpCreds = sh(
-                        script: '''
-                        curl -sH "X-Vault-Token: $VAULT_TOKEN" \
-                          "$VAULT_ADDR/v1/gcp/roleset/terraform-admin/key?ttl=10m" \
-                          | ./jq -r '.data.private_key_data' | base64 -d
-                        ''',
-                        returnStdout: true
-                    ).trim()
-                    
-                    // Guardar el archivo JSON localmente para usar con Terraform
-                    writeFile file: 'gcp-creds.json', text: gcpCreds
-                
-                    // Seteamos variable que usará Terraform
-                    env.GOOGLE_APPLICATION_CREDENTIALS = "${env.WORKSPACE}/gcp-creds.json"                    
+                            // Guardar el archivo JSON localmente para usar con Terraform
+                            writeFile file: 'gcp-creds.json', text: gcpCreds
+
+                            // Seteamos variable que usará Terraform
+                            env.GOOGLE_APPLICATION_CREDENTIALS = "${env.WORKSPACE}/gcp-creds.json"
+                        }
+                    }
                 }
             }
         }
@@ -97,9 +100,6 @@ spec:
             }
             steps {
                 container('terraform') {
-                    sh '''
-                    echo Token es $VAULT_TOKEN
-                    '''
                     sh 'terraform apply -auto-approve'
                 }
             }
