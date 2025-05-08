@@ -64,7 +64,7 @@ variable "machine_type" {
 variable "instance_tags" {
   description = "Etiquetas para la instancia"
   type        = list(string)
-  default     = ["ssh-server"]
+  default     = ["ssh-server-ubuntu"]
 }
 
 # ---------------------------------------------------------

@@ -51,6 +51,7 @@ spec:
                         withEnv(["VAULT_TOKEN=${GetVaultToken}"]) {
                             def gcpCreds = sh(
                                 script: '''
+                                set +x
                                 curl -sH "X-Vault-Token: $VAULT_TOKEN" \
                                   "$VAULT_ADDR/v1/gcp/roleset/terraform-admin/key?ttl=10m" \
                                   | ./jq -r '.data.private_key_data' | base64 -d
@@ -79,10 +80,7 @@ spec:
 
         stage('Terraform Plan') {
             when {
-                anyOf {
-                    branch pattern: "PR-.*", comparator: "REGEXP"
-                    changeRequest()
-                }
+                changeRequest()
             }
             steps {
                 container('terraform') {
