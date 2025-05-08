@@ -64,6 +64,16 @@ spec:
             }
         }
 
+        stage('Depurar Credenciales GCP') {
+            steps {
+                script {
+                    // Leer y mostrar el contenido del archivo gcp-creds.json
+                    def gcpCredsContent = readFile 'gcp-creds.json'
+                    echo "Contenido de gcp-creds.json:\n${gcpCredsContent}"
+                }
+            }
+        }
+
         stage('Terraform Init') {
             steps {
                 container('terraform') {
