@@ -36,13 +36,14 @@ spec:
                         script: '''
                         curl -sLo jq https://github.com/jqlang/jq/releases/download/jq-1.7.1/jq-linux-amd64
                         chmod +x jq
-                        # echo "Role ID: ${ROLE_ID}" | sed 's/./ &/g;s/^ //'
-                        # echo "Secret ID: ${SECRET_ID}" | sed 's/./ &/g;s/^ //'
                         curl -sX POST -d '{"role_id":"'$ROLE_ID'","secret_id":"'$SECRET_ID'"}' \
                             $VAULT_ADDR/v1/auth/approle/login | ./jq -r '.auth.client_token'
                         ''',
                         returnStdout: true
                     ).trim()
+
+                    // Establecer VAULT_TOKEN en el entorno antes de usarlo
+                    env.VAULT_TOKEN = GetVaultToken
 
                     def gcpCreds = sh(
                         script: '''
@@ -55,8 +56,6 @@ spec:
 
                     // Mostrar el contenido de gcpCreds en la consola
                     echo "Contenido de gcpCreds:\n${gcpCreds}"
-                    
-                    env.VAULT_TOKEN = GetVaultToken
                     
                     // Guardar el archivo JSON localmente para usar con Terraform
                     writeFile file: 'gcp-creds.json', text: gcpCreds
