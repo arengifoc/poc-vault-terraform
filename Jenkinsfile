@@ -52,6 +52,9 @@ spec:
                         ''',
                         returnStdout: true
                     ).trim()
+
+                    // Mostrar el contenido de gcpCreds en la consola
+                    echo "Contenido de gcpCreds:\n${gcpCreds}"
                     
                     env.VAULT_TOKEN = GetVaultToken
                     
