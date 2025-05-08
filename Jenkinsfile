@@ -15,8 +15,11 @@ spec:
         }
     }
 
+    options {
+        ansiColor('xterm')
+    }
+
     environment {
-        TF_VAR_region = 'us-east-1'
         VAULT_ADDR = 'https://vault.angelrengifo.com'
         ROLE_ID = credentials('vault-approle-cicd-role-id')
         SECRET_ID = credentials('vault-approle-cicd-secret-id')
@@ -49,7 +52,7 @@ spec:
                         script: '''
                         curl -sH "X-Vault-Token: $VAULT_TOKEN" \
                           "$VAULT_ADDR/v1/gcp/roleset/terraform-admin/key?ttl=10m" \
-                          | ./jq -r '.data.private_key_data' | base64 --decode | tr -d '\\r'
+                          | ./jq -r '.data.private_key_data' | base64 -d
                         ''',
                         returnStdout: true
                     ).trim()
