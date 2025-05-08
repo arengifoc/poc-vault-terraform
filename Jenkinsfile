@@ -48,7 +48,7 @@ spec:
                         script: '''
                         curl -sH "X-Vault-Token: $VAULT_TOKEN" \
                           "$VAULT_ADDR/v1/gcp/roleset/terraform-admin/key?ttl=10m" \
-                          | ./jq -r '.data.private_key_data' | base64 -d
+                          | ./jq -r '.data.private_key_data' | base64 --decode | tr -d '\\r'
                         ''',
                         returnStdout: true
                     ).trim()
