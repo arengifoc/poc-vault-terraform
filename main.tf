@@ -52,7 +52,7 @@ variable "image" {
 variable "instance_name" {
   description = "Nombre de la instancia"
   type        = string
-  default     = "tf-instance"
+  default     = "tf-instance-ubuntu"
 }
 
 variable "machine_type" {
